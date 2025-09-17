@@ -1,7 +1,8 @@
+from dataclasses import dataclass, field
 from datetime import datetime
 import json
 import os, base64
-from typing import TypedDict
+from typing import NamedTuple
 from db import init_db, SessionLocal
 from models import KDFPolicy, VaultData, VaultKey
 from argon2.low_level import hash_secret_raw, Type
@@ -9,6 +10,27 @@ from getpass import getpass
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.exceptions import InvalidTag
 
+
+_AAD_WRAP = b"wrap:v1"
+_AAD_DATA = b"data:v1"
+
+
+class KeyRef(NamedTuple):
+    key_id: int
+    policy_id: int
+
+
+@dataclass(slots=True)
+class UnlockedVault:
+    key_id: int
+    policy_id: int
+    dek: bytearray = field(repr=False, compare=False, hash=False)
+
+
+def aad_for_wrap(policy_id: int, kdfv: int) -> bytes:
+    return b";".join([_AAD_WRAP,
+                      f"policy_id={policy_id}".encode(),
+                      f"kdfv={kdfv}".encode()])
 
 
 # Get the KDF Policy data, creates new row if non-existant. This is used when deriving the KEK (Key Encryption Key).
@@ -55,63 +77,20 @@ def derive_kek(master_password: str, policy) -> bytes:
     return kek
 
 
-# Format for wrapped DEK
-class WrappedDEK(TypedDict):
-    ciphertext: bytes
-    nonce: bytes
-    policy_id: int
-
-
-# Wrap DEK. Returns an encrypted DEK that can be stored in the vault.db
-def wrap_dek(kek: bytes, dek: bytes, policy: "KDFPolicy") -> WrappedDEK:
-    if len(kek) != 32:
-        raise ValueError("KEK must be 32 bytes (AES-256).")
-    if len(dek) != 32:
-        raise ValueError("DEK must be 32 bytes.")
-
+# Generate new DEK wrapped and stored in vault_keys table.
+def generate_new_dek(session, kek: bytes, policy: "KDFPolicy") -> KeyRef:
+    dek = os.urandom(32)
     nonce = os.urandom(12)
+
     aesgcm = AESGCM(kek)
-    aad = f"policy:{policy.id}|kdfv:{policy.kdf_version}".encode("utf-8")
+    aad = aad_for_wrap(policy_id=policy.id, kdfv=policy.kdf_version)
 
     ciphertext = aesgcm.encrypt(nonce=nonce, data=dek, associated_data=aad)
 
-    return WrappedDEK(
+    vault_key = VaultKey(
         ciphertext=ciphertext,
         nonce=nonce,
         policy_id=policy.id,
-    )
-
-
-# Unwrap DEK. Returns the created DEK to encrypt new entries and decrypt existing entries in the vault_data table.
-def unwrap_dek(kek: bytes, wrapped: WrappedDEK, policy: "KDFPolicy") -> bytes:
-    if len(wrapped["nonce"]) != 12:
-        raise ValueError("Invalid nonce length for AES-GCM (expected 12 bytes).")
-    if len(wrapped["ciphertext"]) < 16:  # must at least contain the tag
-        raise ValueError("Ciphertext too short to contain GCM tag.")
-
-    aesgcm = AESGCM(kek)
-    aad = f"policy:{policy.id}|kdfv:{policy.kdf_version}".encode("utf-8")
-
-    try:
-        return aesgcm.decrypt(
-            nonce=wrapped["nonce"],
-            data=wrapped["ciphertext"],
-            associated_data=aad
-        )
-    except InvalidTag:
-        raise ValueError("Unwrap failed: invalid tag (wrong key/nonce/AAD or corrupted data).")
-
-
-
-# Generate new DEK. If no wrapped DEK is stored in the vault keys, a new DEK will be generated, wrapped and stored.
-def generate_new_dek(session, kek: bytes, policy: "KDFPolicy"):
-    dek = os.urandom(32)
-    wrapped_dek = wrap_dek(kek=kek, dek=dek, policy=policy)
-
-    vault_key = VaultKey(
-        ciphertext=wrapped_dek['ciphertext'],
-        nonce=wrapped_dek['nonce'],
-        policy_id=wrapped_dek['policy_id'],
         active=True
     )
 
@@ -119,11 +98,54 @@ def generate_new_dek(session, kek: bytes, policy: "KDFPolicy"):
     session.commit()
     
 
-    return wrapped_dek
+    return KeyRef(
+        key_id=vault_key.id, 
+        policy_id=vault_key.policy_id
+    )
 
 
+def get_or_create_active_key_ref(session, kek, policy) -> KeyRef:
+    row = (session.query(VaultKey.id, VaultKey.policy_id)
+                  .filter_by(active=True)
+                  .one_or_none())
+    if row is None:
+        # Creates, wraps, persists; returns KeyRef (ids only)
+        return generate_new_dek(session=session, kek=kek, policy=policy)
+    return KeyRef(key_id=row.id, policy_id=row.policy_id)
 
 
+# Unwrap DEK. Returns the created DEK to encrypt new entries and decrypt existing entries in the vault_data table.
+def unwrap_dek(session, kek: bytes, key_ref: KeyRef, policy: "KDFPolicy") -> UnlockedVault:
+    row = (session.query(
+                VaultKey.id,
+                VaultKey.ciphertext,
+                VaultKey.nonce, 
+                VaultKey.policy_id,
+                VaultKey.active
+           )
+           .filter(VaultKey.id == key_ref.key_id)
+           .one_or_none())
+
+    aad = aad_for_wrap(policy_id=policy.id, kdfv=policy.kdf_version)
+
+    try:
+        dek_bytes = AESGCM(kek).decrypt(
+            nonce=row.nonce,
+            data=row.ciphertext,
+            associated_data=aad
+        )
+    except InvalidTag as e:
+        # Wrong KEK or tampered blob
+        raise "unable to unwrap DEK" from e
+    
+    vault = UnlockedVault(
+        key_id=row.id,
+        policy_id=row.policy_id,
+        dek=bytearray(dek_bytes)
+    )
+
+    del dek_bytes
+    return vault
 
 
 def main():
@@ -139,23 +161,14 @@ def main():
     kek = derive_kek(master_password=master_password, policy=policy)
     del master_password
 
-    # Obtain vault key (Obtain wrapped DEK row, or generate new DEK if not existant)
-    existing_dek = session.query(VaultKey).filter_by(active=True).first()
-    if existing_dek:
-        wrapped_dek = WrappedDEK( 
-            ciphertext=existing_dek.ciphertext, 
-            nonce=existing_dek.nonce, 
-            policy_id=existing_dek.policy_id, 
-        )
-    if not existing_dek:
-        wrapped_dek = generate_new_dek(session=session, kek=kek, policy=policy)
+    # Obtain unwrapped DEK to write and read vault_data 
+    key_ref = get_or_create_active_key_ref(session=session, kek=kek, policy=policy)    
+    vault = unwrap_dek(session=session, key_ref=key_ref, kek=kek, policy=policy)   
 
-    unwrapped_dek = unwrap_dek(kek=kek, wrapped=wrapped_dek, policy=policy)
+    print(vault)
 
 
 if __name__ == "__main__":
     main()
-
-
 
 
