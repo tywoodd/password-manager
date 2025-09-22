@@ -41,7 +41,9 @@ class VaultData(Base):
     __tablename__ = 'vault_data'
 
     id = Column(Integer, primary_key=True)
+    entry_uuid = Column(String(36), unique=True, nullable=False)
     vault_key_id = Column(Integer, ForeignKey("vault_keys.id"), nullable=False)
     nonce = Column(LargeBinary, nullable=False)
-    payload = Column(LargeBinary, nullable=False)
+    ciphertext = Column(LargeBinary, nullable=False)
+    schema_v = Column(Integer, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.now)
