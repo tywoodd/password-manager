@@ -68,7 +68,7 @@ class Ui_MainWindow(object):
         self.lockIconLabel.setObjectName(u"lockIconLabel")
         self.lockIconLabel.setAutoFillBackground(False)
         self.lockIconLabel.setStyleSheet(u"transparent;")
-        self.lockIconLabel.setPixmap(QPixmap(u":/img/img/lock.png"))
+        self.lockIconLabel.setPixmap(QPixmap(u"ui/ui/img/lock.png"))
         self.lockIconLabel.setScaledContents(False)
         self.lockIconLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 

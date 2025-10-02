@@ -7,5 +7,5 @@ Base = declarative_base()
 
 def init_db():
     # Import models inside so their tables are registered on Base.metadata
-    from models import KDFPolicy, VaultData, VaultKey
+    from core.models import KDFPolicy, VaultData, VaultKey
     Base.metadata.create_all(bind=engine)

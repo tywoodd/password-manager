@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import Boolean, DateTime, Column, ForeignKey, Integer, LargeBinary, String
 from sqlalchemy.orm import relationship
-from db import Base
+from core.db import Base
 
 
 class KDFPolicy(Base):

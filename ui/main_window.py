@@ -19,10 +19,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.unlockButton.clicked.connect(self.return_password_text)
         self.passwordEdit.returnPressed.connect(self.return_password_text)
 
-
         # Lock Button
         self.actionLock.triggered.connect(self.lock_vault)
-        
+
+        # Entries Table
+        self.table = self.entriesTable
+        self._model = None
+
+
+    def set_model(self, model):
+        self._model = model
+        self.table.setModel(model)
 
     def return_password_text(self):
         return self.passwordEdit.text()
