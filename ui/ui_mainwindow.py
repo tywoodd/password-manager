@@ -180,7 +180,7 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Vault", None))
         self.actionNew.setText(QCoreApplication.translate("MainWindow", u"&New", None))
         self.actionEdit.setText(QCoreApplication.translate("MainWindow", u"&Edit", None))
         self.actionLock.setText(QCoreApplication.translate("MainWindow", u"&Lock", None))

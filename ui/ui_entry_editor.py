@@ -216,6 +216,14 @@ class Ui_EntryEditorDialog(object):
 
         self.verticalLayout.addWidget(self.buttonBox)
 
+        QWidget.setTabOrder(self.titleEdit, self.usernameEdit)
+        QWidget.setTabOrder(self.usernameEdit, self.uRLEdit)
+        QWidget.setTabOrder(self.uRLEdit, self.passwordEdit)
+        QWidget.setTabOrder(self.passwordEdit, self.togglePwdButton)
+        QWidget.setTabOrder(self.togglePwdButton, self.generatePwdButton)
+        QWidget.setTabOrder(self.generatePwdButton, self.retypePasswordEdit)
+        QWidget.setTabOrder(self.retypePasswordEdit, self.toolButton)
+        QWidget.setTabOrder(self.toolButton, self.notesEdit)
 
         self.retranslateUi(EntryEditorDialog)
         self.buttonBox.accepted.connect(EntryEditorDialog.accept)

@@ -1,4 +1,4 @@
-from .vault import get_or_create_policy, derive_kek, get_or_create_active_key_ref, unwrap_dek, write_entry as _write_entry, read_entry as _read_entry, update_entry as _update_entry
+from .vault import get_or_create_policy, derive_kek, get_or_create_active_key_ref, unwrap_dek, write_entry as _write_entry, read_entry as _read_entry, update_entry as _update_entry, delete_entry as _delete_entry
 from core.models import VaultData
 
 class VaultService:
@@ -55,6 +55,14 @@ class VaultService:
             notes=notes
         )
         
+
+    def delete_entry(self, entry_id):
+        assert self._unlocked and self._dek is not None, "Vault is locked."
+        _delete_entry(
+            session=self._session,
+            entry_uuid=entry_id
+        )
+
 
 # ------- Get entries from the DB ------- Pull UUIDs from DB, decrypt each entry, and build a list of entries.
 

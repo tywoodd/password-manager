@@ -29,7 +29,7 @@ class EntryEditor(QDialog, Ui_EntryEditorDialog):
             
 
         # Disable "Save" button by default 
-        self.save_btn =self.buttonBox.button(self.buttonBox.StandardButton.Save)
+        self.save_btn = self.buttonBox.button(self.buttonBox.StandardButton.Save)
         self.save_btn.setEnabled(False)
 
         # Signals

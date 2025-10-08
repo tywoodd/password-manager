@@ -276,6 +276,17 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>titleEdit</tabstop>
+  <tabstop>usernameEdit</tabstop>
+  <tabstop>uRLEdit</tabstop>
+  <tabstop>passwordEdit</tabstop>
+  <tabstop>togglePwdButton</tabstop>
+  <tabstop>generatePwdButton</tabstop>
+  <tabstop>retypePasswordEdit</tabstop>
+  <tabstop>toolButton</tabstop>
+  <tabstop>notesEdit</tabstop>
+ </tabstops>
  <resources>
   <include location="resources.qrc"/>
  </resources>

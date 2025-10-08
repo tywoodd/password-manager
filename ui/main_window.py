@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QSlider, QToolBar, QLabel, QLineEdit
 from PySide6.QtCore import Qt, QSize, QTimer
+from ui.models.vault_table import VaultTableModel
 from .ui_mainwindow import Ui_MainWindow
 from .entry_editor import EntryEditor
 from . import resources_rc as resources_rc  
@@ -74,6 +75,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 url=data.get("url"),
                 notes=data.get("notes")
             )
+            entries = self.vault.list_entries()
+            model = VaultTableModel(entries)
+            self.table.setModel(model)
+
 
     # Edit Entry Method
     def on_edit_entry(self):
@@ -87,32 +92,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         data = dlg.get_data()
 
-        if data.get("password") != data.get("password2"):
-            dlg.passwordHintLabel.setText("Passwords must match")
-            QTimer.singleShot(3000, lambda: dlg.passwordHintLabel.setText(""))
-
-        else:
-            dlg._validate_form()
-            self.vault.update_entry(
-                entry_id=entry_id,
-                title=data.get("title"),
-                username=data.get("username"),
-                password=data.get("password"),
-                url=data.get("url"),
-                notes=data.get("notes")
-            )
+        dlg._validate_form()
+        self.vault.update_entry(
+            entry_id=entry_id,
+            title=data.get("title"),
+            username=data.get("username"),
+            password=data.get("password"),
+            url=data.get("url"),
+            notes=data.get("notes")
+        )
+        entries = self.vault.list_entries()
+        model = VaultTableModel(entries)
+        self.table.setModel(model)
 
 
     # Delete Entry Method
     def on_delete(self):
         entry_id = self.selected_entry_id()
-        if entry_id is None:
-            return
-        pass
+        self.vault.delete_entry(entry_id)        
+        entries = self.vault.list_entries()
+        model = VaultTableModel(entries)
+        self.table.setModel(model)
 
 
     # Lock Vault Method
     def lock_vault(self):
+        self.vault.lock()
         self.stackedWidget.setCurrentIndex(0)
         self.toolBar.hide()
 
@@ -120,10 +125,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # -------------- Unlock Vault Method ------------------
 
     def unlock_vault(self):
-        self.passwordEdit.clear()
-        self.table.setColumnHidden(0, True) 
-        self.stackedWidget.setCurrentIndex(1)
-        self.toolBar.show()
+        master_password = self.passwordEdit.text().strip()
+        
+        try:
+            self.vault.unlock(master_password)
+
+        except Exception:
+            self.unlockHintLabel.setText("Incorrect Password")
+            QTimer.singleShot(3000, lambda: self.unlockHintLabel.setText(""))
+
+        else:
+            entries = self.vault.list_entries()
+            model = VaultTableModel(entries)
+            self.table.setModel(model)
+
+            self.passwordEdit.clear()
+            self.table.setColumnHidden(0, True) 
+            self.stackedWidget.setCurrentIndex(1)
+            self.toolBar.show()
 
 
     def return_password_text(self):

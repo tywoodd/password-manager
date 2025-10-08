@@ -29,7 +29,7 @@ class VaultTableModel(QAbstractTableModel):
             elif index.column() == 2:
                 return entry["username"]
             elif index.column() == 3:
-                return entry["password"]
+                return "*****"
             elif index.column() == 4:
                 return entry["url"]         
             elif index.column() == 5:

@@ -281,3 +281,11 @@ def update_entry(session, vault: "UnlockedVault", entry_uuid, title, username, p
 
     return entry_uuid
 
+
+def delete_entry(session, entry_uuid):
+    row = session.query(VaultData).filter_by(entry_uuid=entry_uuid).one_or_none()  
+    if row is None:
+        raise Exception(f"entry_uuid {entry_uuid} not found")  
+    
+    session.delete(row)
+    session.commit()
