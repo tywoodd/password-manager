@@ -47,3 +47,4 @@ class VaultData(Base):
     ciphertext = Column(LargeBinary, nullable=False)
     schema_v = Column(Integer, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.now)
+    updated_at = Column(DateTime)

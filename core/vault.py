@@ -6,7 +6,6 @@ from typing import NamedTuple
 from uuid import uuid4
 from core.models import KDFPolicy, VaultData, VaultKey
 from argon2.low_level import hash_secret_raw, Type
-from getpass import getpass
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.exceptions import InvalidTag
 
@@ -159,7 +158,7 @@ def unwrap_dek(session, kek: bytes, key_ref: KeyRef, policy: "KDFPolicy") -> Unl
 
 
 
-def write_entry(session, vault: UnlockedVault, title, username, password, url, notes):
+def write_entry(session, vault: UnlockedVault, title, username, password, url, notes) -> str:
     nonce = os.urandom(12)
     entry_uuid = str(uuid4())
     payload = {
@@ -173,19 +172,21 @@ def write_entry(session, vault: UnlockedVault, title, username, password, url, n
     }
     
     plaintext = json.dumps(payload, separators=(",", ":")).encode("utf-8")
+    del payload
+
     aad = aad_for_entry(
         key_id=vault.key_id,
         policy_id=vault.policy_id,
         schema_v=DATA_SCHEMA_V,
         entry_uuid=entry_uuid
     )
-
     aesgcm = AESGCM(vault.dek)
     ciphertext = aesgcm.encrypt(
         nonce=nonce,
         data=plaintext,
         associated_data=aad
     )
+    del plaintext
 
     entry = VaultData(
         vault_key_id=vault.key_id,
@@ -223,3 +224,60 @@ def read_entry(session, vault: "UnlockedVault", entry_uuid) -> dict:
         raise Exception("decryption failed (invalid tag)") from e
 
     return json.loads(plaintext.decode("utf-8"))
+
+
+def update_entry(session, vault: "UnlockedVault", entry_uuid, title, username, password, url, notes) -> str:
+    row = session.query(VaultData).filter_by(entry_uuid=entry_uuid).one_or_none()
+    if row is None:
+        raise Exception(f"entry_uuid {entry_uuid} not found")
+
+    aad = aad_for_entry(
+        key_id=vault.key_id,
+        policy_id=vault.policy_id,
+        schema_v=row.schema_v,
+        entry_uuid=row.entry_uuid
+    )
+    aesgcm = AESGCM(vault.dek)
+
+    try:
+        plaintext = aesgcm.decrypt(
+            nonce=row.nonce,
+            data=row.ciphertext,
+            associated_data=aad
+        )
+    except InvalidTag as e:
+        raise Exception("decryption failed (invalid tag)") from e
+
+    loaded_entry =  json.loads(plaintext.decode("utf-8"))
+    del plaintext
+
+    if title is not None:
+        loaded_entry["title"] = title
+    if username is not None:
+        loaded_entry["username"] = username
+    if password is not None:
+        loaded_entry["password"] = password
+    if url is not None:
+        loaded_entry["url"] = url
+    if notes is not None:
+        loaded_entry["notes"] = notes
+
+    loaded_entry["updated_at"] = datetime.now().isoformat()
+    
+    new_nonce = os.urandom(12)
+    new_plaintext = json.dumps(loaded_entry, separators=(",", ":")).encode("utf-8")
+
+
+    new_ciphertext = aesgcm.encrypt(
+        nonce=new_nonce,
+        data=new_plaintext,
+        associated_data=aad,
+    )
+    del new_plaintext
+
+    row.nonce = new_nonce
+    row.ciphertext = new_ciphertext
+    session.commit()
+
+    return entry_uuid
+

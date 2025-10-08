@@ -20,13 +20,13 @@ from PySide6.QtWidgets import (QAbstractItemView, QApplication, QHBoxLayout, QHe
     QLabel, QLineEdit, QMainWindow, QPushButton,
     QSizePolicy, QSpacerItem, QStackedWidget, QStatusBar,
     QTableView, QToolBar, QVBoxLayout, QWidget)
-from . import resources_rc as resources_rc
+from . import resources_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(865, 725)
+        MainWindow.resize(1117, 895)
         self.actionNew = QAction(MainWindow)
         self.actionNew.setObjectName(u"actionNew")
         icon = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.ListAdd))
@@ -57,7 +57,7 @@ class Ui_MainWindow(object):
         self.pageLocked.setObjectName(u"pageLocked")
         self.lockedPanel = QWidget(self.pageLocked)
         self.lockedPanel.setObjectName(u"lockedPanel")
-        self.lockedPanel.setGeometry(QRect(39, 19, 759, 541))
+        self.lockedPanel.setGeometry(QRect(39, 19, 1051, 791))
         self.verticalLayout_4 = QVBoxLayout(self.lockedPanel)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.verticalSpacer = QSpacerItem(738, 50, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
@@ -68,7 +68,7 @@ class Ui_MainWindow(object):
         self.lockIconLabel.setObjectName(u"lockIconLabel")
         self.lockIconLabel.setAutoFillBackground(False)
         self.lockIconLabel.setStyleSheet(u"transparent;")
-        self.lockIconLabel.setPixmap(QPixmap(u"ui/ui/img/lock.png"))
+        self.lockIconLabel.setPixmap(QPixmap(u":/img/img/lock.png"))
         self.lockIconLabel.setScaledContents(False)
         self.lockIconLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -113,7 +113,7 @@ class Ui_MainWindow(object):
         self.pageVault.setObjectName(u"pageVault")
         self.vaultPanel = QWidget(self.pageVault)
         self.vaultPanel.setObjectName(u"vaultPanel")
-        self.vaultPanel.setGeometry(QRect(0, 0, 851, 631))
+        self.vaultPanel.setGeometry(QRect(0, 0, 1091, 791))
         self.verticalLayout_2 = QVBoxLayout(self.vaultPanel)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.entriesPanel = QWidget(self.vaultPanel)

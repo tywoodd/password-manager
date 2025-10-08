@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="img">
+    <file>img/eye.svg</file>
+    <file>img/random.svg</file>
     <file>img/lock.png</file>
   </qresource>
 </RCC>
