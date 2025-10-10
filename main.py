@@ -26,23 +26,3 @@ if __name__ == "__main__":
     main()
 
 
-# TODO 
-# 
-# 
-# *** done *** copy cells from Table on double click. remove edit_entry from double click.
-# 
-# *** done ***  view password toggle in EntryDialog
-# *** done ***  status bar at bottom of window
-#  *** done *** password generator in EntryDialog
-# .
-# 
-#
-#
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# .

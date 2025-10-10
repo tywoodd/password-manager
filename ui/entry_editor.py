@@ -49,28 +49,31 @@ class EntryEditor(QDialog, Ui_EntryEditorDialog):
         # Generate Password button
         self.generatePwdButton.clicked.connect(self.generate_password)
 
-        # --------------------------------------------
+        # --------------------------------------------------
+
 
         # Signals
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
 
+
+        # Validate form
+        self.titleEdit.textChanged.connect(self._validate_form)
         self.passwordEdit.textChanged.connect(self._validate_form)
         self.retypePasswordEdit.textChanged.connect(self._validate_form)
 
 
 
-    # Check if form is valid - All fields are filled - Passwords match - Password is 8+ characters
+    # Validate form Method - All fields are filled - Passwords match - Password is 8+ characters
     def _validate_form(self):
         password = self.passwordEdit.text().strip()
         retype = self.retypePasswordEdit.text().strip()
-        username = self.usernameEdit.text().strip()
+        title = self.titleEdit.text().strip()
 
-        if not username or not password or not retype:
-            self.passwordHintLabel.setText("All fields are required.")
+        if title == "":
+            self.passwordHintLabel.setText("Title is required")
             self.passwordHintLabel.setStyleSheet("color: red;")
             self.save_btn.setEnabled(False)
-            return
         
         if password != retype:
             self.passwordHintLabel.setText("Passwords do not match.")
@@ -78,7 +81,7 @@ class EntryEditor(QDialog, Ui_EntryEditorDialog):
             self.save_btn.setEnabled(False)
             return
 
-        if len(password) < 8:
+        if len(password) < 8 and len(password) != 0:
             self.passwordHintLabel.setText("Password must be at least 8 characters.")
             self.passwordHintLabel.setStyleSheet("color: red;")
             self.save_btn.setEnabled(False)
@@ -100,6 +103,9 @@ class EntryEditor(QDialog, Ui_EntryEditorDialog):
         }
     
 
+    # ---------------- Tool Button Methods -----------------------
+
+
     # Toggle Password view Method
     def toggle_password_view(self, checked):
         if checked:
@@ -116,7 +122,7 @@ class EntryEditor(QDialog, Ui_EntryEditorDialog):
             self.retypePasswordEdit.setEchoMode(QLineEdit.Password)
 
 
-    # Generate new password
+    # Generate new password Method
     def generate_password(self):
         alphabet = string.ascii_letters + string.digits + string.punctuation
         password = ''.join(secrets.choice(alphabet) for _ in range(22))

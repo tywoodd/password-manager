@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QSlider, QToolBar, QLabel, QLineEdit, QMessageBox
-from PySide6.QtCore import Qt, QSize, QTimer
+from PySide6.QtCore import Qt, QSize, QTimer, QRegularExpression, QSortFilterProxyModel
+from PySide6.QtGui import QGuiApplication, QClipboard
 from ui.models.vault_table import VaultTableModel
 from .ui_mainwindow import Ui_MainWindow
 from .entry_editor import EntryEditor
@@ -18,7 +19,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Entries Table
         self.table = self.entriesTable
-        self._model = None
+        self.model = None
+
+        # Table Search
+        self.proxy = QSortFilterProxyModel(self)
+        self.proxy.setFilterKeyColumn(-1)
+        self.table.setModel(self.proxy)
+
+        self.searchEdit.textChanged.connect(self.search_filter)
 
         # Toolbar Buttons
         self.actionNew.triggered.connect(self.on_new_entry)
@@ -39,8 +47,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # Table Model Method
     def set_model(self, model):
-        self._model = model
-        self.table.setModel(model)
+        self.model = model
+        self.proxy.setSourceModel(self.model)
+
+
+    # Table Search Method
+    def search_filter(self, text):
+        search = QRegularExpression(QRegularExpression.escape(text), QRegularExpression.CaseInsensitiveOption)
+        self.proxy.setFilterRegularExpression(search)
 
 
     # Select Row Method
@@ -71,9 +85,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             value = entry["password"]
 
         QApplication.clipboard().setText(value)
-        self.statusBar.showMessage("Copied for 10 seconds!")
-        QTimer.singleShot(10000, lambda: (QApplication.clipboard().clear(), self.statusBar.clearMessage()))
-        
 
 
     # -------------- Toolbar Methods ------------------
@@ -100,8 +111,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 notes=data.get("notes")
             )
             entries = self.vault.list_entries()
-            model = VaultTableModel(entries)
-            self.table.setModel(model)
+            self.model = VaultTableModel(entries)
+            self.proxy.setSourceModel(self.model)
+            self.table.setModel(self.proxy)
 
 
     # Edit Entry Method
@@ -126,8 +138,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             notes=data.get("notes")
         )
         entries = self.vault.list_entries()
-        model = VaultTableModel(entries)
-        self.table.setModel(model)
+        self.model = VaultTableModel(entries)
+        self.proxy.setSourceModel(self.model)
+        self.table.setModel(self.proxy)
 
 
     # Delete Entry Method
@@ -143,8 +156,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             entry_id = self.selected_entry_id()
             self.vault.delete_entry(entry_id)        
             entries = self.vault.list_entries()
-            model = VaultTableModel(entries)
-            self.table.setModel(model)
+            self.model = VaultTableModel(entries)
+            self.proxy.setSourceModel(self.model)
+            self.table.setModel(self.proxy)
         else:
             return
 
@@ -170,8 +184,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         else:
             entries = self.vault.list_entries()
-            model = VaultTableModel(entries)
-            self.table.setModel(model)
+            self.model = VaultTableModel(entries)
+            self.proxy.setSourceModel(self.model)
+            self.table.setModel(self.proxy)
 
             self.passwordEdit.clear()
             self.table.setColumnHidden(0, True) 
