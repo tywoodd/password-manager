@@ -2,7 +2,6 @@ from core.db import init_db, SessionLocal
 from core.vault_service import VaultService
 from ui.main_window import MainWindow
 from PySide6.QtWidgets import QApplication
-from PySide6.QtCore import QTimer
 import sys
 
 
@@ -30,10 +29,11 @@ if __name__ == "__main__":
 # TODO 
 # 
 # 
+# *** done *** copy cells from Table on double click. remove edit_entry from double click.
 # 
-# 
-# 
-#
+# *** done ***  view password toggle in EntryDialog
+# *** done ***  status bar at bottom of window
+#  *** done *** password generator in EntryDialog
 # .
 # 
 #

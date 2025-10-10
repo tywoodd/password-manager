@@ -1,4 +1,6 @@
-from .vault import get_or_create_policy, derive_kek, get_or_create_active_key_ref, unwrap_dek, write_entry as _write_entry, read_entry as _read_entry, update_entry as _update_entry, delete_entry as _delete_entry
+from .vault import (get_or_create_policy, derive_kek, get_or_create_active_key_ref, unwrap_dek, 
+                    write_entry as _write_entry, read_entry as _read_entry, 
+                    update_entry as _update_entry, delete_entry as _delete_entry)
 from core.models import VaultData
 
 class VaultService:

@@ -41,6 +41,15 @@
           </property>
          </widget>
         </item>
+        <item row="0" column="1">
+         <widget class="QWidget" name="titleWidget" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout_6">
+           <item>
+            <widget class="QLineEdit" name="titleEdit"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
         <item row="1" column="0">
          <widget class="QLabel" name="usernameLabel">
           <property name="text">
@@ -48,11 +57,29 @@
           </property>
          </widget>
         </item>
+        <item row="1" column="1">
+         <widget class="QWidget" name="usernameWidget" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <widget class="QLineEdit" name="usernameEdit"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
         <item row="2" column="0">
          <widget class="QLabel" name="uRLLabel">
           <property name="text">
            <string>URL</string>
           </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QWidget" name="uRLWidget" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <item>
+            <widget class="QLineEdit" name="uRLEdit"/>
+           </item>
+          </layout>
          </widget>
         </item>
         <item row="3" column="0">
@@ -116,103 +143,14 @@
           </layout>
          </widget>
         </item>
-        <item row="7" column="0">
-         <widget class="QLabel" name="strengthLabel">
+        <item row="4" column="1">
+         <widget class="QLabel" name="passwordHintLabel">
           <property name="text">
            <string/>
           </property>
-         </widget>
-        </item>
-        <item row="7" column="1">
-         <widget class="QWidget" name="strengthWidget" native="true">
-          <layout class="QHBoxLayout" name="horizontalLayout_3">
-           <item>
-            <spacer name="horizontalSpacer_2">
-             <property name="orientation">
-              <enum>Qt::Orientation::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QProgressBar" name="progressBar">
-             <property name="value">
-              <number>0</number>
-             </property>
-             <property name="format">
-              <string>( Weak )</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="horizontalSpacer">
-             <property name="orientation">
-              <enum>Qt::Orientation::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="8" column="0">
-         <widget class="QLabel" name="notesLabel">
-          <property name="text">
-           <string>Notes</string>
+          <property name="alignment">
+           <set>Qt::AlignmentFlag::AlignCenter</set>
           </property>
-         </widget>
-        </item>
-        <item row="8" column="1">
-         <widget class="QWidget" name="notesWidget" native="true">
-          <layout class="QHBoxLayout" name="horizontalLayout">
-           <item>
-            <widget class="QTextEdit" name="notesEdit">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>375</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QWidget" name="uRLWidget" native="true">
-          <layout class="QHBoxLayout" name="horizontalLayout_4">
-           <item>
-            <widget class="QLineEdit" name="uRLEdit"/>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QWidget" name="usernameWidget" native="true">
-          <layout class="QHBoxLayout" name="horizontalLayout_5">
-           <item>
-            <widget class="QLineEdit" name="usernameEdit"/>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QWidget" name="titleWidget" native="true">
-          <layout class="QHBoxLayout" name="horizontalLayout_6">
-           <item>
-            <widget class="QLineEdit" name="titleEdit"/>
-           </item>
-          </layout>
          </widget>
         </item>
         <item row="5" column="0">
@@ -233,7 +171,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QToolButton" name="toolButton">
+            <widget class="QToolButton" name="togglePwdButton2">
              <property name="text">
               <string/>
              </property>
@@ -246,13 +184,33 @@
           </layout>
          </widget>
         </item>
-        <item row="4" column="1">
-         <widget class="QLabel" name="passwordHintLabel">
+        <item row="7" column="0">
+         <widget class="QLabel" name="strengthLabel">
           <property name="text">
            <string/>
           </property>
-          <property name="alignment">
-           <set>Qt::AlignmentFlag::AlignCenter</set>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QWidget" name="notesWidget" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <widget class="QTextEdit" name="notesEdit">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>375</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="notesLabel">
+          <property name="text">
+           <string>Notes</string>
           </property>
          </widget>
         </item>
@@ -284,7 +242,7 @@
   <tabstop>togglePwdButton</tabstop>
   <tabstop>generatePwdButton</tabstop>
   <tabstop>retypePasswordEdit</tabstop>
-  <tabstop>toolButton</tabstop>
+  <tabstop>togglePwdButton2</tabstop>
   <tabstop>notesEdit</tabstop>
  </tabstops>
  <resources>

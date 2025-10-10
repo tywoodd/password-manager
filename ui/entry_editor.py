@@ -1,6 +1,8 @@
 from PySide6.QtWidgets import QDialog, QLineEdit
 from PySide6.QtCore import Signal, Qt
 from .ui_entry_editor import Ui_EntryEditorDialog
+import secrets
+import string
 
 
 
@@ -32,6 +34,23 @@ class EntryEditor(QDialog, Ui_EntryEditorDialog):
         self.save_btn = self.buttonBox.button(self.buttonBox.StandardButton.Save)
         self.save_btn.setEnabled(False)
 
+
+        # ---------- Tool Buttons -------------------
+
+
+        # Toggle Password button
+        self.togglePwdButton.setCheckable(True)
+        self.togglePwdButton.toggled.connect(self.toggle_password_view)
+
+        # Toggle Password retype button
+        self.togglePwdButton2.setCheckable(True)
+        self.togglePwdButton2.toggled.connect(self.toggle_password2_view)
+
+        # Generate Password button
+        self.generatePwdButton.clicked.connect(self.generate_password)
+
+        # --------------------------------------------
+
         # Signals
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
@@ -40,6 +59,8 @@ class EntryEditor(QDialog, Ui_EntryEditorDialog):
         self.retypePasswordEdit.textChanged.connect(self._validate_form)
 
 
+
+    # Check if form is valid - All fields are filled - Passwords match - Password is 8+ characters
     def _validate_form(self):
         password = self.passwordEdit.text().strip()
         retype = self.retypePasswordEdit.text().strip()
@@ -63,11 +84,11 @@ class EntryEditor(QDialog, Ui_EntryEditorDialog):
             self.save_btn.setEnabled(False)
             return
 
-
         self.passwordHintLabel.clear()
         self.save_btn.setEnabled(True)
 
-    
+
+   #Returns data from dialog for the Entry Payload 
     def get_data(self) -> dict:
         return {
             "title": self.titleEdit.text().strip(),
@@ -77,3 +98,27 @@ class EntryEditor(QDialog, Ui_EntryEditorDialog):
             "url": self.uRLEdit.text().strip(),
             "notes": self.notesEdit.toPlainText()
         }
+    
+
+    # Toggle Password view Method
+    def toggle_password_view(self, checked):
+        if checked:
+            self.passwordEdit.setEchoMode(QLineEdit.Normal)
+        else:
+            self.passwordEdit.setEchoMode(QLineEdit.Password)
+
+
+    # Toggle Password retype view Method
+    def toggle_password2_view(self, checked):
+        if checked:
+            self.retypePasswordEdit.setEchoMode(QLineEdit.Normal)
+        else:
+            self.retypePasswordEdit.setEchoMode(QLineEdit.Password)
+
+
+    # Generate new password
+    def generate_password(self):
+        alphabet = string.ascii_letters + string.digits + string.punctuation
+        password = ''.join(secrets.choice(alphabet) for _ in range(22))
+        self.passwordEdit.setText(password)
+        self.retypePasswordEdit.setText(password)

@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QSlider, QToolBar, QLabel, QLineEdit
+from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QSlider, QToolBar, QLabel, QLineEdit, QMessageBox
 from PySide6.QtCore import Qt, QSize, QTimer
 from ui.models.vault_table import VaultTableModel
 from .ui_mainwindow import Ui_MainWindow
@@ -26,11 +26,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.action_Delete.triggered.connect(self.on_delete)
         self.actionLock.triggered.connect(self.lock_vault)
 
-        self.table.doubleClicked.connect(self.on_edit_entry)
-
         # Unlock Vault Button
         self.unlockButton.clicked.connect(self.return_password_text)
         self.passwordEdit.returnPressed.connect(self.return_password_text)
+
+        # Double Click to Copy
+        self.table.doubleClicked.connect(self.double_click)
 
 
     # -------------- Entries Table Methods -----------------------
@@ -50,6 +51,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         row = selected_rows_list[0].row()
         entry_uuid = self.table.model().index(row, 0)
         return entry_uuid.data()
+
+
+    # Double Click Method
+    def double_click(self, index):
+        if not index.isValid():
+            return
+        
+        model = index.model() or self.table.model()
+        if model is None:
+            return
+
+        value = model.data(index, Qt.DisplayRole)
+        if not value:
+            return
+        
+        if index.column() == 3:
+            entry = model._entries[index.row()]
+            value = entry["password"]
+
+        QApplication.clipboard().setText(value)
+        self.statusBar.showMessage("Copied for 10 seconds!")
+        QTimer.singleShot(10000, lambda: (QApplication.clipboard().clear(), self.statusBar.clearMessage()))
+        
 
 
     # -------------- Toolbar Methods ------------------
@@ -108,11 +132,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # Delete Entry Method
     def on_delete(self):
-        entry_id = self.selected_entry_id()
-        self.vault.delete_entry(entry_id)        
-        entries = self.vault.list_entries()
-        model = VaultTableModel(entries)
-        self.table.setModel(model)
+        reply = QMessageBox.question(
+            self,
+            "Confirm Deletion",
+            "Are you sure you want to delete?",
+            QMessageBox.Yes | QMessageBox.Cancel
+        )
+        
+        if reply == QMessageBox.Yes:
+            entry_id = self.selected_entry_id()
+            self.vault.delete_entry(entry_id)        
+            entries = self.vault.list_entries()
+            model = VaultTableModel(entries)
+            self.table.setModel(model)
+        else:
+            return
 
 
     # Lock Vault Method
